@@ -11,11 +11,9 @@ class Client:
 	BASE_URL = 'https://www.fxp.co.il'
 
 	def __init__(self):
-		self._events = {}
-
 		self.sess = requests.Session()
 		self.sess.headers.update({
-			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'
 		})
 
 		self._is_logged_in = False
@@ -30,6 +28,7 @@ class Client:
 			return False
 
 		md5pass = hashlib.md5(password.encode()).hexdigest()
+
 		login_req = self.sess.post(f'{self.BASE_URL}/login.php', params={
 			'do': 'login',
 			'web_fast_fxp': 1
@@ -169,6 +168,19 @@ class Client:
 			'do': 'sendemail'
 		})
 		return not r.url == f'{self.BASE_URL}/report.php?do=sendemail'
+
+	def edit_comment(self, comment_id, content):
+		r = self.sess.post(f'{self.BASE_URL}/editpost.php', params={
+			'do': 'updatepost',
+			'postid': comment_id
+		}, data={
+			'securitytoken': self.securitytoken,
+			'do': 'updatepost',
+			'ajax': 1,
+			'postid': comment_id,
+			'message': content,
+		})
+		return '<postbit><![CDATA[' in r.text
 
 	def like_comment(self, comment_id):
 		self.sess.post(f'{self.BASE_URL}/ajax.php', data={
