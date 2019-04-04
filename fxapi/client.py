@@ -16,7 +16,7 @@ class Client:
 			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'
 		})
 
-		self._is_logged_in = False
+		self.__is_logged_in = False
 
 		self.username = None
 		self.userid = None
@@ -24,7 +24,7 @@ class Client:
 		self.uienfxp = None
 
 	def login(self, username, password):
-		if self._is_logged_in:
+		if self.__is_logged_in:
 			return False
 
 		md5pass = hashlib.md5(password.encode()).hexdigest()
@@ -57,12 +57,12 @@ class Client:
 		self.securitytoken = re.search(r'SECURITYTOKEN = "(.+?)";', home_req.text).group(1)
 		self.uienfxp = re.search(r'uienfxp = "(.+?)";', home_req.text).group(1)
 
-		self._is_logged_in = True
+		self.__is_logged_in = True
 
 		return True
 
 	def create(self):
-		if self._is_logged_in:
+		if self.__is_logged_in:
 			return False
 
 		onesignal_uuid = self.sess.post('https://onesignal.com/api/v1/players', data={
@@ -79,6 +79,7 @@ class Client:
 		}).json()
 
 		self.userid = create_req_data.get('userid')
+
 		if not self.userid:
 			return False
 
@@ -89,7 +90,7 @@ class Client:
 			'web_fast_fxp': 1
 		}).text).group(1)
 
-		self._is_logged_in = True
+		self.__is_logged_in = True
 
 		return True
 
@@ -122,7 +123,6 @@ class Client:
 			'f': forum_id,
 			'do': 'postthread',
 			'posthash': '',
-			'poststarttime': int(time.time()),
 			'loggedinuser': self.userid,
 			'signature': 1,
 			'parseurl': 1
@@ -149,8 +149,7 @@ class Client:
 			't': thread_id,
 			'specifiedpost': 1,
 			'parseurl': 1,
-			'loggedinuser': self.userid,
-			'poststarttime': int(time.time())
+			'loggedinuser': self.userid
 		})
 
 		comment_id = etree.fromstring(r.content).xpath('//postbits/newpostid/text()')
@@ -237,7 +236,7 @@ class Client:
 	def get_username_by_id(self, userid):
 		r = requests.get(f'{self.BASE_URL}/member.php', params={
 			'u': userid
-		}).text
+		})
 		return html.fromstring(r.content).xpath('//span[@class="member_username"]/span/text()')[0]
 
 	@classmethod
