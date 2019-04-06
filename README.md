@@ -12,7 +12,10 @@ The module doesn't load any type of files while sending requests to the site and
 
 ## Installation
 
-This package can be installed from GitHub (for now)
+This package can be installed from GitHub or with `pip` (install from github for an up to date code)
+```
+pip install fxapi
+```
 
 ## Basic Usage
 ```python
