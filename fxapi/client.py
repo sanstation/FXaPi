@@ -115,7 +115,7 @@ class Client:
 		}, data={
 			'prefixid': prefix,
 			'subject': title,
-			'message_backup': content,
+			'message_backup': '',
 			'message': content,
 			'wysiwyg': 1,
 			's': '',
@@ -168,7 +168,7 @@ class Client:
 		})
 		return not r.url == f'{self.BASE_URL}/report.php?do=sendemail'
 
-	def edit_comment(self, comment_id, content):
+	def edit_comment(self, comment_id, content, reason=''):
 		r = self.sess.post(f'{self.BASE_URL}/editpost.php', params={
 			'do': 'updatepost',
 			'postid': comment_id
@@ -178,6 +178,7 @@ class Client:
 			'ajax': 1,
 			'postid': comment_id,
 			'message': content,
+			'reason': reason
 		})
 		return '<postbit><![CDATA[' in r.text
 
@@ -231,6 +232,13 @@ class Client:
 			'wysiwyg': 1
 		})
 		return 'pmid' in r.text
+
+	def get_forum_prefixes(self, forum_id):
+		r = self.sess.get(f'{self.BASE_URL}/newthread.php', params={
+			'do': 'newthread',
+			'f': forum_id
+		})
+		return html.fromstring(r.content).xpath('//select[@id="prefixfield"]/optgroup/option/@value')
 
 	@classmethod
 	def get_username_by_id(self, userid):
