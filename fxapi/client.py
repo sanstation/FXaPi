@@ -110,22 +110,17 @@ class Client:
 
 	def create_thread(self, forum_id, title, content, prefix=None):
 		r = self.sess.post(f'{self.BASE_URL}/newthread.php', params={
-			'do': 'newthread',
 			'f': forum_id
 		}, data={
+			'do': 'postthread',
 			'prefixid': prefix,
 			'subject': title,
-			'message_backup': '',
 			'message': content,
 			'wysiwyg': 1,
-			's': '',
-			'securitytoken': self.securitytoken,
-			'f': forum_id,
-			'do': 'postthread',
-			'posthash': '',
 			'loggedinuser': self.userid,
 			'signature': 1,
-			'parseurl': 1
+			'parseurl': 1,
+			'securitytoken': self.securitytoken
 		})
 		return dict(parse_qsl(urlparse(r.url).query)).get('t', False)
 
@@ -134,9 +129,9 @@ class Client:
 			content += f' [COLOR=#fafafa]{random.randrange(1, 10**4)}[/COLOR]'
 
 		r = self.sess.post(f'{self.BASE_URL}/newreply.php', params={
-			'do': 'postreply',
 			't': thread_id
 		}, data={
+			'do': 'postreply',
 			'securitytoken': self.securitytoken,
 			'ajax': 1,
 			'message_backup': content,
@@ -144,9 +139,6 @@ class Client:
 			'wysiwyg': 1,
 			'signature': 1,
 			'fromquickreply': 1,
-			's': '',
-			'do': 'postreply',
-			't': thread_id,
 			'specifiedpost': 1,
 			'parseurl': 1,
 			'loggedinuser': self.userid
@@ -157,28 +149,22 @@ class Client:
 		return comment_id[0] if len(comment_id) > 0 else False
 
 	def report_comment(self, comment_id, reason):
-		r = self.sess.post(f'{self.BASE_URL}/report.php', params={
-			'do': 'sendemail'
-		}, data={
+		r = self.sess.post(f'{self.BASE_URL}/report.php', data={
+			'do': 'sendemail',
 			'reason': reason,
 			'postid': comment_id,
-			's': '',
 			'securitytoken': self.securitytoken,
-			'do': 'sendemail'
 		})
 		return not r.url == f'{self.BASE_URL}/report.php?do=sendemail'
 
 	def edit_comment(self, comment_id, content, reason=''):
-		r = self.sess.post(f'{self.BASE_URL}/editpost.php', params={
-			'do': 'updatepost',
-			'postid': comment_id
-		}, data={
-			'securitytoken': self.securitytoken,
+		r = self.sess.post(f'{self.BASE_URL}/editpost.php', data={
 			'do': 'updatepost',
 			'ajax': 1,
 			'postid': comment_id,
 			'message': content,
-			'reason': reason
+			'reason': reason,
+			'securitytoken': self.securitytoken
 		})
 		return '<postbit><![CDATA[' in r.text
 
@@ -199,8 +185,8 @@ class Client:
 
 	def create_private_chat(self, title, content, to):
 		r = self.sess.post(f'{self.BASE_URL}/private_chat.php', data={
-			'securitytoken': self.securitytoken,
 			'do': 'insertpm',
+			'securitytoken': self.securitytoken,
 			'recipients': to,
 			'title': title,
 			'message': content,
@@ -216,10 +202,10 @@ class Client:
 
 	def send_private_chat(self, to, pmid, content):
 		r = self.sess.post(f'{self.BASE_URL}/private_chat.php', data={
+			'do': 'insertpm',
 			'message': content,
 			'fromquickreply': 1,
 			'securitytoken': self.securitytoken,
-			'do': 'insertpm',
 			'pmid': pmid,
 			'loggedinuser': self.userid,
 			'parseurl': 1,
@@ -256,10 +242,7 @@ class Client:
 
 	@classmethod
 	def verify_username(self, username):
-		r = requests.post(f'{self.BASE_URL}/ajax.php', params={
-			'do': 'verifyusername'
-		}, data={
-			'securitytoken': 'guest',
+		r = requests.post(f'{self.BASE_URL}/ajax.php', data={
 			'do': 'verifyusername',
 			'username': username
 		})
