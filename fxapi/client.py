@@ -30,12 +30,10 @@ class Client:
 		md5pass = hashlib.md5(password.encode()).hexdigest()
 
 		login_req = self.sess.post(f'{self.BASE_URL}/login.php', params={
-			'do': 'login',
 			'web_fast_fxp': 1
 		}, data={
 			'vb_login_username': username,
 			'vb_login_password': '',
-			's': '',
 			'securitytoken': self.securitytoken,
 			'do': 'login',
 			'cookieuser': 1,
@@ -225,6 +223,18 @@ class Client:
 			'f': forum_id
 		})
 		return html.fromstring(r.content).xpath('//select[@id="prefixfield"]/optgroup/option/@value')
+
+	@classmethod
+	def get_forum_threads_ids(self, forum_id, page=1, threads_per_page=5):
+		r = requests.get(f'{self.BASE_URL}/forumdisplay.php', params={
+			'f': forum_id,
+			'page': page,
+			'pp': threads_per_page,
+			'web_fast_fxp': 1
+		})
+
+		ids = html.fromstring(r.content).xpath('//li[contains(@class, "threadbit")]/@id')
+		return [tid.replace('thread_', '') for tid in ids]
 
 	@classmethod
 	def get_username_by_id(self, userid):
